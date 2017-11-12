@@ -1,0 +1,168 @@
+ERROR_BIN:                ;ERROR_BIN_1 LABEL
+        
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX , INVALID    ;SHOW INVALID NUMBER
+            MOV AH , 9
+            INT 21H
+            
+        
+        
+        BIN_TO_HEX:                     ;BINARY TO HEXA-DECIMAL LABEL 
+            
+            LEA DX , NEW_LINE       
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX , BINARY_NUMBER      ;BINARY NUMBER INPUT MESSAGE SHOW
+            MOV AH , 9
+            INT 21H
+            
+            MOV FLAG , 49
+            JMP INPUT_BINARY    
+        
+ 
+        
+        INPUT_BINARY:       ;INPUT_BINARY LABEL
+         
+            XOR AX , AX     ;CLEARING ALL REGISTERS
+            XOR BX , BX
+            XOR CX , CX
+            XOR DX , DX
+            MOV CL , 1      ;SETTING 1 TO CL
+            
+        
+        
+        INPUT_BINARY2:          ;INPUT_BINARY2 LABEL
+         
+            MOV AH , 1          ;INPUT BINARY NUMBER
+            INT 21H
+            
+            CMP AL , 0DH        ;CHECK IF ENTER IS PRESSED OR NOT
+            JE ENTER
+            
+            CMP AL , 48
+            JNE BINARY_CHECK
+            
+        
+        
+        BINARY_CONTINUE:            ;BINARY_CONTINUE LABEL 
+        
+            SUB AL , 48
+            SHL BX , CL
+            OR BL , AL
+            JMP INPUT_BINARY2       ;JUMP FOR INPUT ANOTHER DIGIT AGAIN    
+        
+        
+        
+        BINARY_CHECK:               ;BINARY_CHECK LABEL
+        
+            CMP AL , 49             ;TO CHECK IF THERE OTHER VALUE INPUTED RATHER THAN 1 AND 0
+            JNE ERROR_BIN           ;IF OTHER VALUE INPUTED ERROR MESSAGE WILL DISPLAY
+            JMP BINARY_CONTINUE    
+        
+        
+        
+        ENTER:                  ;ENTER LABEL 
+        
+            CMP FLAG , 49       ;TO DETECT WHICH OUTPUT VALUE IT SHOULD REFER
+            JE OUTPUT_HEXA
+            
+            CMP FLAG , 50
+            JE OUTPUT_DEC
+            
+            CMP FLAG , 51
+            JE OUTPUT_DEC           
+
+            
+        
+        OUTPUT_HEXA:                ;OUTPUT IN HEX LABEL
+        
+            XOR DX , DX
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX , SHOW_HEX       ;PRINT HEX NUMBER MESSAGE
+            MOV AH , 9
+            INT 21H
+            
+            MOV CL , 1              ;MOV CL TO 1
+            MOV CH , 0              ;MOV CH TO 0
+            
+            JMP OUTPUT_HEXA2
+            
+        
+        
+        OUTPUT_HEXA2:           ;OUTPUT_HEXA2 LABEL 
+        
+            CMP CH , 4          ;COMPARING INPUTS WHETHER INPUTS HAVE BEEN INSERTED FOR 4 TIMES
+            JE AGAIN
+            INC CH
+            
+            MOV DL , BH
+            SHR DL , 4
+            
+            CMP DL , 0AH
+            JL HEXA_DIGIT
+            
+            ADD DL,37H     
+            MOV AH,2        
+            INT 21H          
+            ROL BX,4            ;ROTATING 4 BITS TO LEFT   
+            
+            JMP OUTPUT_HEXA2
+            
+        
+        
+        HEXA_DIGIT:             ;HEXA_DIGIT LABEL 
+        
+            ADD DL,30H         
+            MOV AH,2       
+            INT 21H            
+            ROL BX,4
+                        
+            JMP OUTPUT_HEXA2
+
+
+ERROR:                          ;ERROR LABEL
+            
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX , ERROR_MESSAGE      ;ERROR MESSAGE SHOW
+            MOV AH , 9
+            INT 21H
+            
+            JMP MENU_BAR                ;JUMP TO THE MENU BAR TO GET THE INPUT AGAIN
+        
+        
+        
+        AGAIN:                  ;AGAIN LABEL 
+        
+            LEA DX,NEW_LINE     
+            MOV AH,9     
+            INT 21H 
+             
+            LEA DX,TRY_AGAIN       ;SHOW TRY AGAIN MESSAGE
+            MOV AH,9     
+            INT 21H
+             
+            MOV AH,1       
+            INT 21H         
+             
+        
+            CMP AL,89
+            JE  MENU_BAR        ;COMPARING WITH ASCII CHARS
+    
+            CMP AL,121
+            JE  MENU_BAR  
+    
+            CMP AL,89       
+            JNE  EXIT  
+    
+            CMP AL,121
+            JNE  EXIT

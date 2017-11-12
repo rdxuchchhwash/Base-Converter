@@ -1,0 +1,58 @@
+out_hexafun proc
+            
+            mov al,0
+            mov count_x,al
+            
+            xor dx,dx
+            xor ax,ax
+            
+            
+            mov cx,16
+            
+            while:
+                shl dx,1
+                inc count_x
+                
+                shl bx,1
+                jc one_x
+                
+                
+                mov ax,0
+                jmp cont
+                
+                one_x:
+                    mov ax,1
+                
+                cont:
+                    or dx,ax
+                    
+                    cmp count_x,4
+                    je pus
+                    jmp lp
+                    
+                    pus:
+                        cmp dx,9
+                        jg letter1
+                        
+                        add dx,30h
+                        jmp prnt
+                              
+                        letter1:
+                        add dx,37h
+                        
+                        prnt:
+                        mov ah,2 
+                        int 21h
+                        
+                        xor dx,dx
+                        mov count_x,0
+                         
+                    lp:    
+                        loop while    
+            
+            
+                
+            
+            
+            ret
+         out_hexafun endp

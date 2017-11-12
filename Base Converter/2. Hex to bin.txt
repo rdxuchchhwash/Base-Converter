@@ -1,0 +1,172 @@
+
+
+ERROR_HEX:
+
+            LEA DX,INVALID          ;DISPLAY ERROR MESSAGE
+            MOV AH,9                
+            INT 21H
+            
+            
+        
+        HEX_TO_BIN:                 ;HEXA-DECIMAL TO BINARY CONVERSION
+                   
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+        
+            LEA DX,HEXA_NUMBER
+            MOV AH,9                ;DISPLAY MSG_IN
+            INT 21H                                 
+
+            JMP START      
+                                
+
+    
+        START:
+            
+            XOR BX,BX                   ;CLEAR BX
+            MOV COUNT,30H               ;COUNTER=0 
+    
+
+    
+        INPUT:
+    
+            MOV AH,1                    ;INPUT
+            INT 21H
+    
+            CMP AL,0DH                  ;COMPARE WITH CR
+            JNE SKIP
+    
+            CMP COUNT,30H               ;COMPARE WITH 0
+            JLE ERROR_HEX               ;IF LESS/EQ JUMP TO ERROR
+            JMP END                
+
+
+
+        SKIP:
+    
+            CMP AL,"A"      ;COMPARE WITH A
+            JL DECIMAL      ;JUMP TO LABEL DECIMAL  IF LESS
+    
+            CMP AL,"F"      ;COMPARE WITH F
+            JG ERROR_HEX    ;JUMP TO LABEL ERROR IF GREATER
+    
+            ADD AL,09H      ;ADD 9 TO AL
+            JMP PROCESS     ;JUMP TO LABEL PROCESS
+    
+
+
+        DECIMAL:
+            
+            CMP AL,39H      ;COMPARE AL WITH 9
+            JG ERROR_HEX    ;IF AL>9 JUMP TO ERROR
+                            ;CHECKING IF INVALID
+            CMP AL,30H      ;COMPARE WITH 0
+            JL ERROR_HEX    ;IF AL<0 JUMP TO ERROR    
+    
+            JMP PROCESS     ;JUMP TO LABE PROCESS   
+    
+
+
+        PROCESS:
+    
+            INC COUNT
+    
+            AND AL,0FH      ;ASCII TO BIN  
+            MOV CL,4        ;SET CL=4
+            SHL AL,CL       ;SHIFT LEFT SIDE 4 TIMES
+            MOV CX,4        ;SET CX=4
+
+
+    
+        LOOP_1:
+    
+            SHL AL,1        ;SHIFT 1 TIME
+            RCL BX,1        ;MOVING THE CARRY TO BX    
+    
+            LOOP LOOP_1     
+
+            CMP COUNT,34H   ;COMPARE WITH 4
+            JE END          ;JUMP TO LABEL END
+            JMP INPUT
+
+        
+        
+        END:
+            
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX,SHOW_BIN      ;DISPLAY MSG_OUT
+            MOV AH,9
+            INT 21H
+
+            MOV CX,16
+            MOV AH,2
+
+        
+        
+        LOOP_2:
+
+            SHL BX,1         ;LEFT SHIFT BX 1 TIME
+                             ;JUMP IF CARRY=1
+            JC ONE
+                                              
+            MOV DL,30H
+            JMP DISPLAY                                          
+
+        
+        
+        ONE:
+
+            MOV DL,31H
+    
+
+
+        DISPLAY:
+
+            INT 21H  
+            LOOP LOOP_2
+
+            JMP AGAIN
+
+
+AGAIN:                  ;AGAIN LABEL 
+        
+            LEA DX,NEW_LINE     
+            MOV AH,9     
+            INT 21H 
+             
+            LEA DX,TRY_AGAIN       ;SHOW TRY AGAIN MESSAGE
+            MOV AH,9     
+            INT 21H
+             
+            MOV AH,1       
+            INT 21H         
+             
+        
+            CMP AL,89
+            JE  MENU_BAR        ;COMPARING WITH ASCII CHARS
+    
+            CMP AL,121
+            JE  MENU_BAR  
+    
+            CMP AL,89       
+            JNE  EXIT  
+    
+            CMP AL,121
+            JNE  EXIT
+
+
+ERROR:                          ;ERROR LABEL
+            
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX , ERROR_MESSAGE      ;ERROR MESSAGE SHOW
+            MOV AH , 9
+            INT 21H
+            
+            JMP MENU_BAR                ;JUMP TO THE MENU BAR TO GET THE INPUT AGAIN

@@ -1,0 +1,441 @@
+                          
+.MODEL SMALL
+
+.STACK 100H
+
+.DATA
+    
+    OUTD DW ?
+    IND DB ?
+    
+    SELECT DB ?
+    
+    INP1 DW ?   ; save decimal input
+    
+    COUNT DB ?
+    
+   
+    D1 DB ?     ; save 1st decimal digit
+    D2 DB ?     ; save 2nd decimal digit
+    D3 DB ?     ; save 3rd decimal digit
+    D4 DB ?     ; save 4th decimal digit
+    D5 DB ?     ; save 5th decimal digit
+    
+    OP1 db '1. DECIMAL TO BINARY $' 
+    OP2 db '2. DECIMAL TO HEXADECIMAL $'
+    
+    REM DW ?
+    
+    NEWL DB 10,13,'$'   ;newline
+    
+    
+    DECIMALINP DB 'First Insert + or - than insert input value between (0-9)                         Maximum Limit is :  65,535 $'
+    
+    INDECIMAL DB 'DECIMAL VALUE: $'
+    INBINARY DB 'BINARY VALUE: $'
+    INHEXADECIMAL DB 'HEXADECIMAL VALUE: $'
+    
+    ERRORMSG DB 'Input Error! Wrong Key Inserted $'
+    
+
+    
+    ENDMSG DB 9,'THANKS $'
+    
+.CODE
+    
+  START:
+    
+    MOV AX,@DATA    ; import data segment
+    MOV DS,AX
+    
+    MOV AH,9    
+    
+    LEA DX,NEWL
+    INT 21H
+    
+    LEA DX,OP1      ; print option1
+    INT 21H
+    LEA DX,NEWL
+    INT 21H
+    
+    LEA DX,OP2      ; print option2
+    INT 21H
+    LEA DX,NEWL
+    INT 21H
+  
+    
+    LEA DX,NEWL
+    INT 21H
+    LEA DX,NEWL
+    INT 21H
+    
+
+    
+    MOV AH,1
+    INT 21H                   ; taking input to select a option
+    MOV SELECT,AL
+    
+    
+    CMP SELECT,'1'
+    JE DECIMAL                 ; part1: decimal to others
+    CMP SELECT,'2'
+    JE DECIMAL
+    
+    
+    ;;ERROR TEST
+    CMP SELECT,'0'
+    JL ERROR
+    
+    CMP SELECT,'2'
+    JG ERROR
+    ;;;;;;;;;;;;
+    
+    
+    DECIMAL:    ; part1
+        
+        MOV AH,9
+        LEA DX,NEWL
+        INT 21H
+        LEA DX,NEWL
+        INT 21H        
+        LEA DX,NEWL
+        INT 21H
+        
+        LEA DX,DECIMALINP
+        INT 21H
+        
+        LEA DX,NEWL
+        INT 21H
+        
+        LEA DX,INDECIMAL
+        INT 21H
+        
+        CALL INPUT_DECIMALFUN       ; calling decimal_input function
+        MOV INP1,BX                 ; input saved in INP1
+        
+        CMP SELECT,'1'              ; for binary output
+        JE OUT_BINARY
+                                
+        CMP SELECT,'2'              ; for hexadecimal output
+        JE OUT_HEXA
+        
+        
+        OUT_BINARY:
+            
+            MOV AH,9
+            LEA DX,NEWL
+            INT 21H
+            LEA DX,NEWL
+            INT 21H
+            
+            LEA DX,INBINARY
+            INT 21H
+            
+            
+            MOV BX,INP1          ; fix input in a register for output
+            CALL OUT_BINARYFUN   ; calling binary_output function
+            
+            JMP AGAIN            ; jump to redo label
+            
+        
+        OUT_HEXA:
+            
+            MOV AH,9
+            LEA DX,NEWL
+            INT 21H
+            LEA DX,NEWL
+            INT 21H
+            
+            LEA DX,INHEXADECIMAL
+            INT 21H
+            
+            MOV BX,INP1             ; fix input in a register for output
+            CALL OUT_HEXAFUN        ; calling hex_output function
+                
+            JMP AGAIN               ; jump to redo label
+        
+        
+        
+;Functions Area        
+        
+; input_dec and convert into binary(input in bx)        
+
+        INPUT_DECIMALFUN PROC
+        
+                MOV AH,1
+                INT 21H
+                MOV IND,AL
+                
+                CMP IND,'-'
+                JNE NEXTPOS
+                
+                JMP BEGIN1
+                
+                NEXTPOS:
+                    CMP IND,'+'
+                    JNE ERROR
+              
+                
+            BEGIN1:     
+                XOR BX,BX      
+                
+                MOV AH,1      
+                INT 21H
+                
+                MOV CX,0  
+        
+                REPEAT3:
+                    
+                    ;;ERROR TEST
+                    CMP AL,'0'
+                    JL ERROR
+                    
+                    CMP AL,'9'
+                    JG ERROR
+                    ;;;;;;;;;;;
+                    
+                    CMP CX,0
+                    JE ADD1
+                    CMP CX,1
+                    JE ADD2
+                    CMP CX,2
+                    JE ADD3
+                    CMP CX,3
+                    JE ADD4
+                    CMP CX,4
+                    JE ADD5
+                    
+                    ADD1:
+                        MOV D1,AL
+                        JMP WORK
+                    ADD2:
+                        MOV D2,AL
+                        JMP WORK
+                    ADD3:
+                        MOV D3,AL
+                        JMP WORK
+                    ADD4:
+                        MOV D4,AL
+                        JMP WORK
+                    ADD5:
+                        MOV D5,AL
+                        JMP WORK
+                        
+                    
+                    WORK:
+                    AND AX,000FH      
+                    PUSH AX
+                    
+                    MOV AX,10     
+                    MUL BX        
+                    POP BX         
+                    ADD BX,AX      
+                    
+                    INC CX
+                    CMP CX,5
+                    JE EXIT2
+                    
+                    MOV AH,1    
+                    INT 21H
+                    
+                    CMP AL,0DH   
+                    JE EXIT1
+                            
+                    CMP AL,0DH   
+                    JNE REPEATING
+                    
+                        
+                    REPEATING:
+                        
+                        JMP REPEAT3
+                    
+                    
+                    EXIT2:
+                        
+                        MOV AL,D1
+                        CMP AL,'6'
+                        JG ERROR
+                        CMP AL,'6'
+                        JLE NEXT2
+                        
+                            NEXT2:
+                                MOV AL,D2
+                                CMP AL,'5'
+                                JG ERROR
+                                CMP AL,'5'
+                                JLE NEXT3
+                        
+                                NEXT3:
+                                    MOV AL,D3
+                                    CMP AL,'5'
+                                    JG ERROR
+                                    CMP AL,'5'
+                                    JLE NEXT4
+                        
+                                    NEXT4:
+                                        MOV AL,D4
+                                        CMP AL,'3'
+                                        JG ERROR
+                                        CMP AL,'3'
+                                        JLE NEXT5
+                        
+                                        NEXT5:
+                                            MOV AL,D5
+                                            CMP AL,'5'
+                                            JG ERROR                                                                
+                        
+                    EXIT1:
+                        
+                        CMP IND,'-'
+                        JE NGD
+                        
+                        JMP EXITIND
+                        NGD:
+                         NEG BX
+                    
+                    EXITIND:       
+            
+            RET                
+        INPUT_DECIMALFUN ENDP    
+
+
+; output_hex to binary (work with bx)        
+        
+        out_hexafun proc
+            
+            mov al,0
+            mov count,al
+            
+            xor dx,dx
+            xor ax,ax
+            
+            
+            mov cx,16
+            
+            while:
+                shl dx,1
+                inc count
+                
+                shl bx,1
+                jc one
+                
+                
+                mov ax,0
+                jmp cont
+                
+                one:
+                    mov ax,1
+                
+                cont:
+                    or dx,ax
+                    
+                    cmp count,4
+                    je pus
+                    jmp lp
+                    
+                    pus:
+                        cmp dx,9
+                        jge letter1
+                        
+                        add dx,30h
+                        jmp prnt
+                              
+                        letter1:
+                        add dx,37h
+                        
+                        prnt:
+                        mov ah,2 
+                        int 21h
+                        
+                        xor dx,dx
+                        mov count,0
+                         
+                    lp:    
+                        loop while    
+            
+            
+                
+            
+            
+            ret
+         out_hexafun endp   
+
+
+
+
+;;;output_binary from binary(work with bx)
+        
+        OUT_BINARYFUN PROC
+            
+            MOV AH,2
+            MOV CX,16      
+     
+            TOPBIN:
+                SHL BX,1       
+                JNC ZEROBIN   
+                
+                MOV DL,49      
+                JMP PRINTBIN   
+                
+                ZEROBIN:          
+                    MOV DL,48     
+                    
+                PRINTBIN:          
+                    INT 21H     
+                    LOOP TOPBIN            
+        
+        
+            RET
+        OUT_BINARYFUN ENDP
+
+
+;;ERROR message
+    
+    ERROR:
+        
+        MOV AH,9
+        LEA DX,NEWL
+        INT 21H
+        LEA DX,NEWL
+        INT 21H
+        
+        LEA DX,ERRORMSG
+        INT 21H
+        
+        JMP AGAIN
+
+
+
+
+;;REPEAT PROGRAMM
+    
+    AGAIN:
+        
+        MOV AH,9
+        LEA DX,NEWL
+        INT 21H
+        LEA DX,NEWL
+        INT 21H
+        LEA DX,NEWL
+        INT 21H
+        LEA DX,NEWL
+        INT 21H
+    
+
+;;end programm
+    
+    EXIT:
+        
+        MOV AH,9
+        LEA DX,NEWL
+        INT 21H
+        LEA DX,NEWL
+        INT 21H 
+        LEA DX,NEWL
+        INT 21H
+        
+        LEA DX,ENDMSG
+        INT 21H
+        
+        MOV AH,4CH      ; ignore emulator haulted 
+        INT 21H

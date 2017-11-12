@@ -1,0 +1,194 @@
+ERROR_BIN:                ;ERROR_BIN_1 LABEL
+        
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX , INVALID    ;SHOW INVALID NUMBER
+            MOV AH , 9
+            INT 21H
+
+BIN_TO_DEC:                     ;BINARY TO DECIMAL CONVERSION LABEL
+        
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            
+            LEA DX , BINARY_NUMBER      ;BINARY NUMBER INPUT MESSAGE SHOW
+            MOV AH , 9
+            INT 21H
+            
+            MOV FLAG , 50
+            JMP INPUT_BINARY
+
+
+INPUT_BINARY:       ;INPUT_BINARY LABEL
+         
+            XOR AX , AX     ;CLEARING ALL REGISTERS
+            XOR BX , BX
+            XOR CX , CX
+            XOR DX , DX
+            MOV CL , 1      ;SETTING 1 TO CL
+            
+        
+        
+        INPUT_BINARY2:          ;INPUT_BINARY2 LABEL
+         
+            MOV AH , 1          ;INPUT BINARY NUMBER
+            INT 21H
+            
+            CMP AL , 0DH        ;CHECK IF ENTER IS PRESSED OR NOT
+            JE ENTER
+            
+            CMP AL , 48
+            JNE BINARY_CHECK
+            
+        
+        
+        BINARY_CONTINUE:            ;BINARY_CONTINUE LABEL 
+        
+            SUB AL , 48
+            SHL BX , CL
+            OR BL , AL
+            JMP INPUT_BINARY2       ;JUMP FOR INPUT ANOTHER DIGIT AGAIN    
+        
+        
+        
+        BINARY_CHECK:               ;BINARY_CHECK LABEL
+        
+            CMP AL , 49             ;TO CHECK IF THERE OTHER VALUE INPUTED RATHER THAN 1 AND 0
+            JNE ERROR_BIN           ;IF OTHER VALUE INPUTED ERROR MESSAGE WILL DISPLAY
+            JMP BINARY_CONTINUE    
+        
+        
+        
+        ENTER:                  ;ENTER LABEL 
+        
+            CMP FLAG , 49       ;TO DETECT WHICH OUTPUT VALUE IT SHOULD REFER
+            JE OUTPUT_HEXA
+            
+            CMP FLAG , 50
+            JE OUTPUT_DEC
+            
+            CMP FLAG , 51
+            JE OUTPUT_DEC
+
+
+OUTPUT_DEC:                 ;OUTPUT DECIMAL NUMBER LABEL
+        
+            XOR DX , DX
+            
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX , SHOW_DEC
+            MOV AH , 9
+            INT 21H
+            
+            XOR AX , AX
+            
+            MOV AX , BX
+            
+            CMP AX , 9              ;IF LESS THAN 10
+            JLE LESS_THAN_9
+            
+            CMP AX , 99             ;IF GREATER THAN 9 AND LESS THAN 100
+            JLE FROM_10_TO_99
+            
+            CMP AX , 99             ;IF GREATER THAN 99
+            JG OVER_99
+        
+        
+        
+        LESS_THAN_9:        ;LESS_THAN_99 LABEL
+                
+            MOV AH , 2
+            MOV DL , AL
+            ADD DL , 48
+            INT 21H
+            
+            JMP AGAIN  
+        
+        
+        
+        FROM_10_TO_99:              ;FROM_10_TO_99 LABEL
+        
+            MOV DX , 0H
+            MOV BX , 10
+            DIV BX                  ;DIVIDING BY 10
+            
+            MOV REMAINDER , DX      ;STORE REMAINDER
+            
+            MOV AH , 2
+            ADD AX , 48
+            MOV DX , AX
+            INT 21H
+            
+            MOV AH , 2
+            MOV DX , REMAINDER
+            ADD DX , 48
+            INT 21H
+            
+            JMP AGAIN
+            
+        
+        
+        OVER_99:                    ;OVER_99 LABEL
+            
+            MOV DX , 0H
+            MOV BX , 100
+            DIV BX                  ;DIVIDING BY 100
+            
+            MOV REMAINDER , DX      ;STORE REMAINDER
+            
+            MOV AH , 2
+            ADD AX , 48
+            MOV DX , AX
+            INT 21H
+            
+            MOV AX , REMAINDER
+            MOV DX , 0
+            
+            JMP FROM_10_TO_99
+
+ERROR:                          ;ERROR LABEL
+            
+            LEA DX , NEW_LINE
+            MOV AH , 9
+            INT 21H
+            
+            LEA DX , ERROR_MESSAGE      ;ERROR MESSAGE SHOW
+            MOV AH , 9
+            INT 21H
+            
+            JMP MENU_BAR                ;JUMP TO THE MENU BAR TO GET THE INPUT AGAIN
+        
+        
+        
+        AGAIN:                  ;AGAIN LABEL 
+        
+            LEA DX,NEW_LINE     
+            MOV AH,9     
+            INT 21H 
+             
+            LEA DX,TRY_AGAIN       ;SHOW TRY AGAIN MESSAGE
+            MOV AH,9     
+            INT 21H
+             
+            MOV AH,1       
+            INT 21H         
+             
+        
+            CMP AL,89
+            JE  MENU_BAR        ;COMPARING WITH ASCII CHARS
+    
+            CMP AL,121
+            JE  MENU_BAR  
+    
+            CMP AL,89       
+            JNE  EXIT  
+    
+            CMP AL,121
+            JNE  EXIT

@@ -1,0 +1,139 @@
+
+        INPUT_Decimal_dFUN PROC
+        
+                MOV AH,1
+                INT 21H
+                MOV IND,AL
+                
+                CMP IND,'-'
+                JNE NEXTPOS
+                
+                JMP BEGIN1
+                
+                NEXTPOS:
+                    CMP IND,'+'
+                    JNE error_rr
+              
+                
+            BEGIN1:     
+                XOR BX,BX      
+                
+                MOV AH,1      
+                INT 21H
+                
+                MOV CX,0  
+        
+                REPEAT3:
+                    
+                    ;;error_rr TEST
+                    CMP AL,'0'
+                    JL error_rr
+                    
+                    CMP AL,'9'
+                    JG error_rr
+                    ;;;;;;;;;;;
+                    
+                    CMP CX,0
+                    JE ADD1
+                    CMP CX,1
+                    JE ADD2
+                    CMP CX,2
+                    JE ADD3
+                    CMP CX,3
+                    JE ADD4
+                    CMP CX,4
+                    JE ADD5
+                    
+                    ADD1:
+                        MOV D1,AL
+                        JMP WORK
+                    ADD2:
+                        MOV D2,AL
+                        JMP WORK
+                    ADD3:
+                        MOV D3,AL
+                        JMP WORK
+                    ADD4:
+                        MOV D4,AL
+                        JMP WORK
+                    ADD5:
+                        MOV D5,AL
+                        JMP WORK
+                        
+                    
+                    WORK:
+                    AND AX,000FH      
+                    PUSH AX
+                    
+                    MOV AX,10     
+                    MUL BX        
+                    POP BX         
+                    ADD BX,AX      
+                    
+                    INC CX
+                    CMP CX,5
+                    JE EXIT_X2
+                    
+                    MOV AH,1    
+                    INT 21H
+                    
+                    CMP AL,0DH   
+                    JE EXIT_X1
+                            
+                    CMP AL,0DH   
+                    JNE REPEATING
+                    
+                        
+                    REPEATING:
+                        
+                        JMP REPEAT3
+                    
+                    
+                    EXIT_X2:
+                        
+                        MOV AL,D1
+                        CMP AL,'6'
+                        JG error_rr
+                        CMP AL,'6'
+                        JLE NEXT2
+                        
+                            NEXT2:
+                                MOV AL,D2
+                                CMP AL,'5'
+                                JG error_rr
+                                CMP AL,'5'
+                                JLE NEXT3
+                        
+                                NEXT3:
+                                    MOV AL,D3
+                                    CMP AL,'5'
+                                    JG error_rr
+                                    CMP AL,'5'
+                                    JLE NEXT4
+                        
+                                    NEXT4:
+                                        MOV AL,D4
+                                        CMP AL,'3'
+                                        JG error_rr
+                                        CMP AL,'3'
+                                        JLE NEXT5
+                        
+                                        NEXT5:
+                                            MOV AL,D5
+                                            CMP AL,'5'
+                                            JG error_rr                                                                
+                        
+                    EXIT_X1:
+                        
+                        CMP IND,'-'
+                        JE NGD
+                        
+                        JMP EXIT_XIND
+                        NGD:
+                         NEG BX
+                    
+                    EXIT_XIND:       
+            
+            RET                
+        INPUT_Decimal_dFUN ENDP
+
